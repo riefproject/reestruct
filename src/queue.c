@@ -40,7 +40,7 @@ uint getQueueSize(Queue* queue) {
 }
 
 
-/*     QUEUE OPERATIONS
+/*   QUEUE OPERATIONS
  * ==================== */
 void enqueue(Queue* queue, void* data) {
     if (queue == NULL) {

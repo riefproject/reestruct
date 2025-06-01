@@ -18,7 +18,7 @@
 
 /*      CONSTRUCTOR
  * ==================== */
-SingleLinkedList* createSinglyLinkedList() {
+SingleLinkedList* createSingleLinkedList() {
     SingleLinkedList* list = new(SingleLinkedList);
     if (list == NULL) {
         fprintf(stderr, "Error: Memory allocation failed for SingleLinkedList\n");
@@ -43,7 +43,7 @@ SLLNode* createSLLNode(void* data) {
 
 /*      GETTERS
  * ==================== */
-void* getSLLNodeData(SLLNode* node) {
+void* SLL_getNodeData(SLLNode* node) {
     if (node == NULL) {
         fprintf(stderr, "Error: SLLNode is NULL\n");
         return NULL;
@@ -51,7 +51,7 @@ void* getSLLNodeData(SLLNode* node) {
     return node->data;
 }
 
-SLLNode* getSLLNextNode(SLLNode* node) {
+SLLNode* SLL_getNextNode(SLLNode* node) {
     if (node == NULL) {
         fprintf(stderr, "Error: SLLNode is NULL\n");
         return NULL;
@@ -61,7 +61,7 @@ SLLNode* getSLLNextNode(SLLNode* node) {
 
 /*      SETTERS
  * ==================== */
-void setSLLNodeData(SLLNode* node, void* data) {
+void SLL_setNodeData(SLLNode* node, void* data) {
     if (node == NULL) {
         fprintf(stderr, "Error: SLLNode is NULL\n");
         return;
@@ -69,7 +69,7 @@ void setSLLNodeData(SLLNode* node, void* data) {
     node->data = data;
 }
 
-void setSLLNextNode(SLLNode* node, SLLNode* next) {
+void SLL_setNextNode(SLLNode* node, SLLNode* next) {
     if (node == NULL) {
         fprintf(stderr, "Error: SLLNode is NULL\n");
         return;
@@ -79,7 +79,7 @@ void setSLLNextNode(SLLNode* node, SLLNode* next) {
 
 /*     INSERT NODE
  * ==================== */
-void insertSLLFront(SingleLinkedList* list, void* data) {
+void SLL_insertFront(SingleLinkedList* list, void* data) {
     SLLNode* newNode = createSLLNode(data);
     if (newNode == NULL) {
         fprintf(stderr, "Error: Memory allocation failed for new node\n");
@@ -96,7 +96,7 @@ void insertSLLFront(SingleLinkedList* list, void* data) {
     list->size++;
 }
 
-void insertSLLBack(SingleLinkedList* list, void* data) {
+void SLL_insertBack(SingleLinkedList* list, void* data) {
     SLLNode* newNode = createSLLNode(data);
     if (newNode == NULL) {
         fprintf(stderr, "Error: Memory allocation failed for new node\n");
@@ -113,17 +113,17 @@ void insertSLLBack(SingleLinkedList* list, void* data) {
     list->size++;
 }
 
-void insertSLLNode(SingleLinkedList* list, void* data, int pos) {
+void SLL_insertNode(SingleLinkedList* list, void* data, int pos) {
     if (pos < 0 || pos > list->size) {
         fprintf(stderr, "Error: Invalid position for insertion\n");
         return;
     }
     if (pos == 0) {
-        insertSLLFront(list, data);
+        SLL_insertFront(list, data);
         return;
     }
     if (pos == list->size) {
-        insertSLLBack(list, data);
+        SLL_insertBack(list, data);
         return;
     }
     SLLNode* newNode = createSLLNode(data);
@@ -142,7 +142,7 @@ void insertSLLNode(SingleLinkedList* list, void* data, int pos) {
 
 /*     REMOVE NODE
  * ==================== */
-void removeSLLFront(SingleLinkedList* list, SLLNode* node) {
+void SLL_removeFront(SingleLinkedList* list, SLLNode* node) {
     if (node == NULL) {
         fprintf(stderr, "Error: SLLNode is NULL\n");
         return;
@@ -169,7 +169,7 @@ void removeSLLFront(SingleLinkedList* list, SLLNode* node) {
     list->size--;
 }
 
-void removeSLLBack(SingleLinkedList* list, SLLNode* node) {
+void SLL_removeBack(SingleLinkedList* list, SLLNode* node) {
     if (node == NULL) {
         fprintf(stderr, "Error: SLLNode is NULL\n");
         return;
@@ -196,7 +196,7 @@ void removeSLLBack(SingleLinkedList* list, SLLNode* node) {
     list->size--;
 }
 
-void removeSLLNode(SingleLinkedList* list, SLLNode* node, int pos) {
+void SLL_removeNode(SingleLinkedList* list, SLLNode* node, int pos) {
     if (node == NULL) {
         fprintf(stderr, "Error: SLLNode is NULL\n");
         return;
@@ -206,11 +206,11 @@ void removeSLLNode(SingleLinkedList* list, SLLNode* node, int pos) {
         return;
     }
     if (pos == 0) {
-        removeSLLFront(list, node);
+        SLL_removeFront(list, node);
         return;
     }
     if (pos == list->size - 1) {
-        removeSLLBack(list, node);
+        SLL_removeBack(list, node);
         return;
     }
     SLLNode* current = list->head;
@@ -318,8 +318,6 @@ void SLL_printListReverse(SingleLinkedList* list, void (*printFunc)(void*)) {
 
     SLL_printReverse(list->head, printFunc);
 }
-
-
 
 // ===================================================
 //            . . . DOUBLY LINKED LIST . . .
