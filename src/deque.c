@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <unistd.h>
 
 // ===================================================
 //                . . . DEQUE . . .
@@ -205,10 +204,22 @@ void printDeque(Deque* queue, void (*printFunc)(void*)) {
 }
 
 void printDequeReverse(Deque* queue, void (*printFunc)(void*)) {
-    // This function is not implemented in the original code.
-    // You can implement it using a stack or recursion.
     if (queue == NULL) {
         fprintf(stderr, "Error: Deque is NULL\n");
         return;
     }
+    if (queue->size == 0) return;
+    SLLNode** stack = (SLLNode**)malloc(queue->size * sizeof(SLLNode*));
+    if (stack == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed for reverse print\n");
+        return;
+    }
+    uint idx = 0;
+    for (SLLNode* cur = queue->Front; cur != NULL; cur = cur->next) {
+        stack[idx++] = cur;
+    }
+    while (idx > 0) {
+        printFunc(stack[--idx]->data);
+    }
+    free(stack);
 }

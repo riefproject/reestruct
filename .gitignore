@@ -1,15 +1,18 @@
 # Build directories
 /build/
 /release/
+/docs/
 
 # Object files
 *.o
+*.obj
 
 # Libraries
 *.lib
 *.a
 *.so
 *.dll
+*.exe
 
 # Debug files
 *.dSYM/

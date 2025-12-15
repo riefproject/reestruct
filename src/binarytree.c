@@ -1,11 +1,98 @@
+// Created by: Arief F-sa Wijaya
+
 #include "binarytree.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
-#include <assert.h>
-#include <unistd.h>
 
+static uint countNodes(const BTNode* node) {
+    if (node == NULL) return 0;
+    return 1 + countNodes(node->left) + countNodes(node->right);
+}
+
+static uint computeDepth(const BTNode* node) {
+    if (node == NULL) return 0;
+    uint leftDepth = computeDepth(node->left);
+    uint rightDepth = computeDepth(node->right);
+    return 1 + (leftDepth > rightDepth ? leftDepth : rightDepth);
+}
+
+static void preorderHelper(BTNode* node, void (*visitFunc)(void*)) {
+    if (node == NULL) return;
+    visitFunc(node->data);
+    preorderHelper(node->left, visitFunc);
+    preorderHelper(node->right, visitFunc);
+}
+
+static void inorderHelper(BTNode* node, void (*visitFunc)(void*)) {
+    if (node == NULL) return;
+    inorderHelper(node->left, visitFunc);
+    visitFunc(node->data);
+    inorderHelper(node->right, visitFunc);
+}
+
+static void postorderHelper(BTNode* node, void (*visitFunc)(void*)) {
+    if (node == NULL) return;
+    postorderHelper(node->left, visitFunc);
+    postorderHelper(node->right, visitFunc);
+    visitFunc(node->data);
+}
+
+static void levelorderHelper(BTNode* root, void (*visitFunc)(void*)) {
+    if (root == NULL) return;
+    size_t capacity = 16;
+    size_t front = 0;
+    size_t back = 0;
+    BTNode** queue = (BTNode**)malloc(capacity * sizeof(BTNode*));
+    if (queue == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed for traversal queue\n");
+        return;
+    }
+
+    queue[back++] = root;
+    while (front < back) {
+        BTNode* node = queue[front++];
+        visitFunc(node->data);
+        if (node->left != NULL) {
+            if (back >= capacity) {
+                capacity *= 2;
+                BTNode** resized = (BTNode**)realloc(queue, capacity * sizeof(BTNode*));
+                if (resized == NULL) {
+                    fprintf(stderr, "Error: Memory allocation failed during traversal resize\n");
+                    free(queue);
+                    return;
+                }
+                queue = resized;
+            }
+            queue[back++] = node->left;
+        }
+        if (node->right != NULL) {
+            if (back >= capacity) {
+                capacity *= 2;
+                BTNode** resized = (BTNode**)realloc(queue, capacity * sizeof(BTNode*));
+                if (resized == NULL) {
+                    fprintf(stderr, "Error: Memory allocation failed during traversal resize\n");
+                    free(queue);
+                    return;
+                }
+                queue = resized;
+            }
+            queue[back++] = node->right;
+        }
+    }
+    free(queue);
+}
+
+static void destroySubtree(BTNode* node) {
+    if (node == NULL) return;
+    destroySubtree(node->left);
+    destroySubtree(node->right);
+    delete(node);
+}
+
+static void updateDepth(BinaryTree* tree) {
+    tree->depth = computeDepth(tree->root);
+}
 
 /*      CONSTRUCTOR
  * ==================== */
@@ -17,11 +104,11 @@ BinaryTree* createBinaryTree(void* data) {
     }
     tree->root = createBTNode(data);
     if (tree->root == NULL) {
-        fprintf(stderr, "Error: Memory allocation failed for root node\n");
         delete(tree);
         return NULL;
     }
-    tree->depth = 0;
+    tree->root->parent = NULL;
+    tree->depth = computeDepth(tree->root);
     return tree;
 }
 
@@ -34,6 +121,7 @@ BTNode* createBTNode(void* data) {
     node->data = data;
     node->left = NULL;
     node->right = NULL;
+    node->parent = NULL;
     return node;
 }
 
@@ -53,9 +141,7 @@ uint getBinaryTreeSize(BinaryTree* tree) {
         fprintf(stderr, "Error: BinaryTree is NULL\n");
         return 0;
     }
-    uint size = 0;
-    // Implement a traversal to count the nodes
-    return size;
+    return countNodes(tree->root);
 }
 
 bool isLeafNode(BTNode* node) {
@@ -74,6 +160,8 @@ void preorderTraversal(BinaryTree* tree, void (*visitFunc)(void*)) {
         fprintf(stderr, "Error: BinaryTree or root is NULL\n");
         return;
     }
+    if (visitFunc == NULL) return;
+    preorderHelper(tree->root, visitFunc);
 }
 
 void inorderTraversal(BinaryTree* tree, void (*visitFunc)(void*)) {
@@ -81,6 +169,8 @@ void inorderTraversal(BinaryTree* tree, void (*visitFunc)(void*)) {
         fprintf(stderr, "Error: BinaryTree or root is NULL\n");
         return;
     }
+    if (visitFunc == NULL) return;
+    inorderHelper(tree->root, visitFunc);
 }
 
 void postorderTraversal(BinaryTree* tree, void (*visitFunc)(void*)) {
@@ -88,6 +178,8 @@ void postorderTraversal(BinaryTree* tree, void (*visitFunc)(void*)) {
         fprintf(stderr, "Error: BinaryTree or root is NULL\n");
         return;
     }
+    if (visitFunc == NULL) return;
+    postorderHelper(tree->root, visitFunc);
 }
 
 void levelorderTraversal(BinaryTree* tree, void (*visitFunc)(void*)) {
@@ -95,6 +187,8 @@ void levelorderTraversal(BinaryTree* tree, void (*visitFunc)(void*)) {
         fprintf(stderr, "Error: BinaryTree or root is NULL\n");
         return;
     }
+    if (visitFunc == NULL) return;
+    levelorderHelper(tree->root, visitFunc);
 }
 
 
@@ -141,15 +235,12 @@ BTNode* getBinaryTreeRoot(BinaryTree* tree) {
 }
 
 BTNode* getBTNodeParent(BinaryTree* tree, BTNode* node) {
-    if (tree == NULL || node == NULL) {
-        fprintf(stderr, "Error: BinaryTree or BTNode is NULL\n");
+    (void)tree;
+    if (node == NULL) {
+        fprintf(stderr, "Error: BTNode is NULL\n");
         return NULL;
     }
-    // Implement logic to find the parent of the node
-    // This may require a traversal or maintaining parent pointers in the BTNode structure
-    // For now, we will return NULL as a placeholder
-    // In a real implementation, you would need to traverse the tree to find the parent
-    return NULL; // Placeholder
+    return node->parent;
 }
 
 BTNode* getBTNodeSibling(BTNode* node) {
@@ -157,11 +248,10 @@ BTNode* getBTNodeSibling(BTNode* node) {
         fprintf(stderr, "Error: BTNode is NULL\n");
         return NULL;
     }
-    // Implement logic to find the sibling of the node
-    // This may require a traversal or maintaining sibling pointers in the BTNode structure
-    // For now, we will return NULL as a placeholder
-    // In a real implementation, you would need to traverse the tree to find the sibling
-    return NULL; // Placeholder
+    if (node->parent == NULL) return NULL;
+    if (node->parent->left == node) return node->parent->right;
+    if (node->parent->right == node) return node->parent->left;
+    return NULL;
 }
 
 
@@ -181,6 +271,7 @@ void setBTNodeLeft(BTNode* node, BTNode* left) {
         return;
     }
     node->left = left;
+    if (left != NULL) left->parent = node;
 }
 
 void setBTNodeRight(BTNode* node, BTNode* right) {
@@ -189,6 +280,7 @@ void setBTNodeRight(BTNode* node, BTNode* right) {
         return;
     }
     node->right = right;
+    if (right != NULL) right->parent = node;
 }
 
 void setBinaryTreeDepth(BinaryTree* tree, uint depth) {
@@ -205,18 +297,17 @@ void setBinaryTreeRoot(BinaryTree* tree, BTNode* root) {
         return;
     }
     tree->root = root;
+    if (tree->root != NULL) tree->root->parent = NULL;
+    updateDepth(tree);
 }
 
 void setBTNodeParent(BinaryTree* tree, BTNode* node, BTNode* parent) {
-    if (tree == NULL || node == NULL) {
-        fprintf(stderr, "Error: BinaryTree or BTNode is NULL\n");
+    (void)tree;
+    if (node == NULL) {
+        fprintf(stderr, "Error: BTNode is NULL\n");
         return;
     }
-    // Implement logic to set the parent of the node
-    // This may require a traversal or maintaining parent pointers in the BTNode structure
-    // For now, we will do nothing as a placeholder
-    // In a real implementation, you would need to set the parent pointer in the node structure
-    // For now, we will do nothing as a placeholder
+    node->parent = parent;
 }
 
 void setBTNodeSibling(BTNode* node, BTNode* sibling) {
@@ -224,11 +315,13 @@ void setBTNodeSibling(BTNode* node, BTNode* sibling) {
         fprintf(stderr, "Error: BTNode is NULL\n");
         return;
     }
-    // Implement logic to set the sibling of the node
-    // This may require a traversal or maintaining sibling pointers in the BTNode structure
-    // For now, we will do nothing as a placeholder
-    // In a real implementation, you would need to set the sibling pointer in the node structure
-    // For now, we will do nothing as a placeholder
+    if (node->parent == NULL) return;
+    if (node->parent->left == node) {
+        node->parent->right = sibling;
+    } else if (node->parent->right == node) {
+        node->parent->left = sibling;
+    }
+    if (sibling != NULL) sibling->parent = node->parent;
 }
 
 
@@ -240,12 +333,13 @@ void insertLeft(BinaryTree* tree, BTNode* parent, void* data) {
         return;
     }
     BTNode* newNode = createBTNode(data);
-    if (newNode == NULL) {
-        fprintf(stderr, "Error: Memory allocation failed for new node\n");
-        return;
-    }
+    if (newNode == NULL) return;
+
+    newNode->left = parent->left;
+    if (newNode->left != NULL) newNode->left->parent = newNode;
     parent->left = newNode;
-    // Optionally update the tree depth if needed
+    newNode->parent = parent;
+    updateDepth(tree);
 }
 
 void insertRight(BinaryTree* tree, BTNode* parent, void* data) {
@@ -254,12 +348,13 @@ void insertRight(BinaryTree* tree, BTNode* parent, void* data) {
         return;
     }
     BTNode* newNode = createBTNode(data);
-    if (newNode == NULL) {
-        fprintf(stderr, "Error: Memory allocation failed for new node\n");
-        return;
-    }
+    if (newNode == NULL) return;
+
+    newNode->right = parent->right;
+    if (newNode->right != NULL) newNode->right->parent = newNode;
     parent->right = newNode;
-    // Optionally update the tree depth if needed
+    newNode->parent = parent;
+    updateDepth(tree);
 }
 
 void removeNode(BinaryTree* tree, BTNode* node) {
@@ -267,10 +362,17 @@ void removeNode(BinaryTree* tree, BTNode* node) {
         fprintf(stderr, "Error: BinaryTree or node is NULL\n");
         return;
     }
-    // Implement logic to remove the node from the tree
-    // This may require a traversal or maintaining parent pointers in the BTNode structure
-    // For now, we will do nothing as a placeholder
-    // In a real implementation, you would need to remove the node and update the tree structure accordingly
+    if (node->parent != NULL) {
+        if (node->parent->left == node) {
+            node->parent->left = NULL;
+        } else if (node->parent->right == node) {
+            node->parent->right = NULL;
+        }
+    } else {
+        tree->root = NULL;
+    }
+    destroySubtree(node);
+    updateDepth(tree);
 }
 
 
@@ -281,26 +383,12 @@ void destroyBinaryTree(BinaryTree* tree) {
         fprintf(stderr, "Error: BinaryTree is NULL\n");
         return;
     }
-    // Implement logic to free the tree and its nodes
-    // This may require a traversal or maintaining parent pointers in the BTNode structure
-    // For now, we will do nothing as a placeholder
-    // In a real implementation, you would need to free the nodes and the tree structure accordingly
-    delete(tree->root);
+    destroySubtree(tree->root);
     delete(tree);
 }
 
 void destroyBTNode(BTNode* node) {
-    if (node == NULL) {
-        fprintf(stderr, "Error: BTNode is NULL\n");
-        return;
-    }
-    // Implement logic to free the node and its children
-    // This may require a traversal or maintaining parent pointers in the BTNode structure
-    // For now, we will do nothing as a placeholder
-    // In a real implementation, you would need to free the node and its children accordingly
-    delete(node->left);
-    delete(node->right);
-    delete(node);
+    destroySubtree(node);
 }
 
 void clearBinaryTree(BinaryTree* tree) {
@@ -308,11 +396,9 @@ void clearBinaryTree(BinaryTree* tree) {
         fprintf(stderr, "Error: BinaryTree is NULL\n");
         return;
     }
-    // Implement logic to clear the tree and its nodes
-    // This may require a traversal or maintaining parent pointers in the BTNode structure
-    // For now, we will do nothing as a placeholder
-    // In a real implementation, you would need to clear the nodes and the tree structure accordingly
-    destroyBinaryTree(tree);
+    destroySubtree(tree->root);
+    tree->root = NULL;
+    tree->depth = 0;
 }
 
 
@@ -323,14 +409,20 @@ void printBinaryTree(BinaryTree* tree, void (*printFunc)(void*)) {
         fprintf(stderr, "Error: BinaryTree is NULL\n");
         return;
     }
-    if (tree->root == NULL) {
-        fprintf(stderr, "Error: BinaryTree root is NULL\n");
-        return;
+    if (tree->root == NULL || printFunc == NULL) return;
+    inorderHelper(tree->root, printFunc);
+    printf("\n");
+}
+
+static void printDetailed(BTNode* node, void (*printFunc)(void*), uint depth) {
+    if (node == NULL) return;
+    printDetailed(node->right, printFunc, depth + 1);
+    for (uint i = 0; i < depth; i++) {
+        printf("  ");
     }
-    // Implement logic to print the tree using the provided print function
-    // This may require a traversal or maintaining parent pointers in the BTNode structure
-    // For now, we will do nothing as a placeholder
-    // In a real implementation, you would need to traverse the tree and call the print function on each node's data
+    printFunc(node->data);
+    printf("\n");
+    printDetailed(node->left, printFunc, depth + 1);
 }
 
 void printBinaryTreeDetailed(BinaryTree* tree, void (*printFunc)(void*)) {
@@ -338,12 +430,6 @@ void printBinaryTreeDetailed(BinaryTree* tree, void (*printFunc)(void*)) {
         fprintf(stderr, "Error: BinaryTree is NULL\n");
         return;
     }
-    if (tree->root == NULL) {
-        fprintf(stderr, "Error: BinaryTree root is NULL\n");
-        return;
-    }
-    // Implement logic to print the tree in a detailed format using the provided print function
-    // This may require a traversal or maintaining parent pointers in the BTNode structure
-    // For now, we will do nothing as a placeholder
-    // In a real implementation, you would need to traverse the tree and call the print function on each node's data
+    if (tree->root == NULL || printFunc == NULL) return;
+    printDetailed(tree->root, printFunc, 0);
 }

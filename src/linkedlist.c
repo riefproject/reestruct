@@ -6,7 +6,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <unistd.h>
 
 // Table of Content:
 // SLL: Line 15
@@ -174,24 +173,28 @@ void SLL_removeBack(SingleLinkedList* list, SLLNode* node) {
         fprintf(stderr, "Error: SLLNode is NULL\n");
         return;
     }
-    if (list->tail == node) {
-        list->tail = node->next;
-        if (list->tail == NULL) {
-            list->head = NULL;
+    if (list->head == NULL) return;
+
+    if (list->head == node) {
+        list->head = node->next;
+        if (list->head == NULL) list->tail = NULL;
+        delete(node);
+        list->size--;
+        return;
+    }
+
+    SLLNode* prev = list->head;
+    while (prev->next != NULL && prev->next != node) {
+        prev = prev->next;
+    }
+
+    if (prev->next == node) {
+        prev->next = node->next;
+        if (node == list->tail) {
+            list->tail = prev;
         }
     }
-    else {
-        SLLNode* current = list->head;
-        while (current != NULL && current->next != node) {
-            current = current->next;
-        }
-        if (current != NULL) {
-            current->next = node->next;
-            if (node == list->head) {
-                list->head = current;
-            }
-        }
-    }
+
     delete(node);
     list->size--;
 }

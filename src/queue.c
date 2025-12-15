@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <unistd.h>
 
 /*      CONSTRUCTOR
  * ==================== */
@@ -31,6 +30,11 @@ bool isQueueEmpty(Queue* queue) {
     return (queue->Front == NULL && queue->Rear == NULL);
 }
 
+bool isQueueFull(Queue* queue) {
+    (void)queue;
+    return false;  // Linked implementation has no fixed capacity.
+}
+
 uint getQueueSize(Queue* queue) {
     if (queue == NULL) {
         fprintf(stderr, "Error: Queue is NULL\n");
@@ -42,7 +46,7 @@ uint getQueueSize(Queue* queue) {
 
 /*   QUEUE OPERATIONS
  * ==================== */
-void enqueue(Queue* queue, void* data) {
+void Enqueue(Queue* queue, void* data) {
     if (queue == NULL) {
         fprintf(stderr, "Error: Queue is NULL\n");
         return;
@@ -64,7 +68,7 @@ void enqueue(Queue* queue, void* data) {
     newNode->next = NULL;
 }
 
-void* dequeue(Queue* queue) {
+void* Dequeue(Queue* queue) {
     if (queue == NULL) {
         fprintf(stderr, "Error: Queue is NULL\n");
         return NULL;
@@ -84,7 +88,7 @@ void* dequeue(Queue* queue) {
     return data;
 }
 
-void* Queue_peek(Queue* queue) {
+void* Queue_Peek(Queue* queue) {
     if (queue == NULL) {
         fprintf(stderr, "Error: Queue is NULL\n");
         return NULL;
@@ -105,7 +109,7 @@ void clearQueue(Queue* queue) {
         return;
     }
     while (!isQueueEmpty(queue)) {
-        dequeue(queue);
+        Dequeue(queue);
     }
     queue->Front = NULL;
     queue->Rear = NULL;
@@ -137,15 +141,17 @@ void printQueue(Queue* queue, void (*printFunc)(void*)) {
     printf("\n");
 }
 
+static void printQueueReverseRecursive(SLLNode* node, void (*printFunc)(void*)) {
+    if (node == NULL) return;
+    printQueueReverseRecursive(node->next, printFunc);
+    printFunc(node->data);
+}
+
 void printQueueReverse(Queue* queue, void (*printFunc)(void*)) {
     if (queue == NULL) {
         fprintf(stderr, "Error: Queue is NULL\n");
         return;
     }
-    SLLNode* current = queue->Front;
-    while (current != NULL) {
-        printFunc(current->data);
-        current = current->next;
-    }
+    printQueueReverseRecursive(queue->Front, printFunc);
     printf("\n");
 }

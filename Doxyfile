@@ -1,0 +1,24 @@
+# Project configuration
+PROJECT_NAME           = "Reestruct"
+PROJECT_BRIEF          = "Generic C data structures"
+OUTPUT_DIRECTORY       = docs
+OPTIMIZE_OUTPUT_FOR_C  = YES
+EXTRACT_ALL            = YES
+SOURCE_BROWSER         = NO
+INLINE_SOURCES         = NO
+GENERATE_LATEX         = NO
+HAVE_DOT               = NO
+QUIET                  = YES
+
+# Input
+INPUT                  = README.md include src
+FILE_PATTERNS          = *.c *.h *.md
+RECURSIVE              = YES
+EXCLUDE_PATTERNS       = */build/* */release/* */docs/*
+
+# HTML
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+# Warnings
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES

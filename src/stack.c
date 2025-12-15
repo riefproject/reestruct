@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <unistd.h>
 
 /*      CONSTRUCTOR
  * ==================== */
@@ -28,6 +27,11 @@ bool isStackEmpty(Stack* stack) {
         return true;
     }
     return (stack->Top == NULL);
+}
+
+bool isStackFull(Stack* stack) {
+    (void)stack;
+    return false;  // Linked implementation is effectively unbounded.
 }
 
 uint getStackSize(Stack* stack) {
@@ -77,7 +81,7 @@ void* pop(Stack* stack) {
     return data;
 }
 
-void* Stack_peek(Stack* stack) {
+void* Stack_Peek(Stack* stack) {
     if (stack == NULL) {
         fprintf(stderr, "Error: Stack is NULL\n");
         return NULL;
@@ -128,16 +132,17 @@ void printStack(Stack* stack, void (*printFunc)(void*)) {
     printf("\n");
 }
 
+static void printStackReverseRecursive(SLLNode* node, void (*printFunc)(void*)) {
+    if (node == NULL) return;
+    printStackReverseRecursive(node->next, printFunc);
+    printFunc(node->data);
+}
+
 void printStackReverse(Stack* stack, void (*printFunc)(void*)) {
     if (stack == NULL) {
         fprintf(stderr, "Error: Stack is NULL\n");
         return;
     }
-    SLLNode* current = stack->Top;
-    while (current != NULL) {
-        printFunc(current->data);
-        current = current->next;
-    }
+    printStackReverseRecursive(stack->Top, printFunc);
     printf("\n");
 }
-
